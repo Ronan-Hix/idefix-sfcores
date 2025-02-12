@@ -63,6 +63,9 @@ class Gravity {
 
   // Whether we should skip gravity computation every n steps
   int skipGravity{1};
+    
+  // Background density to be removed from calculations
+  real backgroundDensity{0.0};
 
 
  private:

@@ -42,7 +42,10 @@ Gravity::Gravity(Input &input, DataBlock *datain) {
       }
     }
   }
-
+    
+  // Fetch background density for removal from solver
+  this->backgroundDensity = input.GetOrSet<real>("Gravity","backgroundDensity",0,0.0);
+   
   // Automatically enables gravity if a planetary system was initialised.
   if(datain->haveplanetarySystem) {
     this->havePlanetsPotential = true;

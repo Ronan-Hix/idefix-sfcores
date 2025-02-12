@@ -34,6 +34,7 @@ class SelfGravity {
   void InitSolver(); // (Re)initialisation of the solver for a given density distribution
 
   void SubstractMeanDensity();  // Compute and substract the average input density
+  void SubtractBackgroundDensity();  // Subtract the background density
 
   void SolvePoisson(); // Solve Poisson equation
   void AddSelfGravityPotential(IdefixArray3D<real> &);

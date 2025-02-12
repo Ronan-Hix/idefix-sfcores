@@ -234,6 +234,9 @@ struct Fluid_CalcRHSFunctor {
       // BodyForce
       bodyForce = hydro->data->gravity->bodyForceVector;
       needBodyForce = hydro->data->gravity->haveBodyForce;
+      
+      // Background density
+      rhoBG = hydro->data->gravity->backgroundDensity;
     }
 
     // parabolic terms
@@ -298,6 +301,9 @@ struct Fluid_CalcRHSFunctor {
   // BodyForce
   IdefixArray4D<real> bodyForce;
   bool needBodyForce{false};
+  
+  // Background Density
+  real rhoBG = 0.0;
 
   // parabolic terms
   bool haveParabolicTerms{false};
@@ -457,7 +463,8 @@ struct Fluid_CalcRHSFunctor {
                       - phiP(k+2,j,i) + 8.0 * phiP(k+1,j,i)
                       - 8.0*phiP(k-1,j,i) + phiP(k-2,j,i));
       }
-      rhs[MX1+dir] += dt * Vc(RHO,k,j,i) * dphi /dl;
+
+      rhs[MX1+dir] += dt * (Vc(RHO,k,j,i) - rhoBG) * dphi /dl;
 
       if constexpr(Phys::pressure) {
         // Add gravitational force work as a source term

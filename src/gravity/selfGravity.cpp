@@ -35,6 +35,10 @@ void SelfGravity::Init(Input &input, DataBlock *datain) {
   // Get maxiter when provided
   real maxiter = input.GetOrSet<int>("SelfGravity","maxIter",0,1000);
 
+  // // Fetch background density
+  // printf("Test1 \n"); 
+  // this->gravity->backgroundDensity = input.GetOrSet<real>("Gravity","backgroundDensity",0,0.0);
+  // printf("Test2 \n");  
   // Get the number of skipped cycles when provided and check consistency
   this->skipSelfGravity = input.GetOrSet<int>("SelfGravity","skip",0,1);
   if(skipSelfGravity<1) {
@@ -276,10 +280,15 @@ void SelfGravity::InitSolver() {
     }
   }
 
+  if(this->data->gravity->backgroundDensity != 0.0){
+    SubtractBackgroundDensity(); // Removes background from calculation (Important to happen before mean subtraction)
+  }
+    
   // Deal with the mean issue for periodic density distribution
   if(this->isPeriodic == true) {
     SubstractMeanDensity();  // Remove density mean
   }
+
 
   // divide density by preconditionner if we're doing the preconditionned version
   if(havePreconditioner) {
@@ -355,7 +364,7 @@ void SelfGravity::SubstractMeanDensity() {
   #endif
 
   real mean = meanDensityVector.v[0] / meanDensityVector.v[1];
-
+    
   // Remove the mean value of the density field
   idefix_for("SubstractMeanDensity",
              0, this->np_tot[KDIR],
@@ -367,6 +376,20 @@ void SelfGravity::SubstractMeanDensity() {
 
   idfx::popRegion();
 }
+
+void SelfGravity::SubtractBackgroundDensity() {
+  // Remove the background density field
+  idefix_for("SubstractBackgroundDensity",
+             0, this->np_tot[KDIR],
+             0, this->np_tot[JDIR],
+             0, this->np_tot[IDIR],
+             KOKKOS_LAMBDA (int k, int j, int i) {
+               density(k, j, i) -= this->data->gravity->backgroundDensity;
+             });
+
+  idfx::popRegion();
+}
+    
 
 void SelfGravity::EnrollUserDefBoundary(Laplacian::UserDefBoundaryFunc myFunc) {
   laplacian->EnrollUserDefBoundary(myFunc);
