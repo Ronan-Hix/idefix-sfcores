@@ -464,7 +464,8 @@ struct Fluid_CalcRHSFunctor {
                       - 8.0*phiP(k-1,j,i) + phiP(k-2,j,i));
       }
 
-      rhs[MX1+dir] += dt * (Vc(RHO,k,j,i) - rhoBG) * dphi /dl;
+      rhs[MX1+dir] += dt * dphi /dl * (Vc(RHO,k,j,i) - rhoBG > 0 ? Vc(RHO,k,j,i) - rhoBG : 0);
+      //Removes graviational force on background, flooring at 0
 
       if constexpr(Phys::pressure) {
         // Add gravitational force work as a source term
@@ -472,6 +473,7 @@ struct Fluid_CalcRHSFunctor {
         // (note that Flux has already been multiplied by A)
         rhs[ENG] += HALF_F * dtdV  *
                   (Flux(RHO,k,j,i) + Flux(RHO, k+koffset, j+joffset, i+ioffset)) * dphi;
+        rhs[ENG] -= dt * rhoBG * Vc(MX1+dir,k,j,i)/Vc(RHO,k,j,i) * dphi/dl; //Removes Gravivational force work on background
       }
     }
 
